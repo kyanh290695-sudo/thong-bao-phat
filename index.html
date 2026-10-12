@@ -17,10 +17,7 @@
       <p>Điền thông tin bên trái, xem trước bên phải, rồi xuất một file PDF gồm: Thông báo phạt → Trang hình ảnh heo chết → Bảng giá.</p>
     </header>
 
-    <section class="card master">
-      <div class="mrow"><span id="masterInfo">Đang tải MASTER.xlsx…</span><button class="btn" id="btnMaster" type="button">Chọn file MASTER</button></div>
-      <input id="fMaster" type="file" accept=".xlsx,.xls" hidden>
-    </section>
+    <div class="notice warn" id="masterInfo" role="alert" hidden></div>
 
     <section class="card">
       <h2><span class="n">1</span>Thông báo</h2>
@@ -37,6 +34,7 @@
 
     <section class="card">
       <h2><span class="n">2</span>Nhà xe (Bên B)</h2>
+      <p class="notice">Nếu số xe chưa có, liên hệ kế toán để được cập nhật thêm.</p>
       <div class="grid2">
         <div class="field"><label for="soXe">Số xe</label><select id="soXe"></select></div>
         <div class="field"><label for="taiXe">Tài xế</label><input id="taiXe" placeholder="Họ tên tài xế"></div>
