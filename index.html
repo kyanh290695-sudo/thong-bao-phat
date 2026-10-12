@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thông Báo Phạt Nhà Xe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <header>
+      <h1>Thông báo phạt nhà xe vận chuyển</h1>
+      <p>Điền thông tin bên trái, xem trước bên phải, rồi xuất một file PDF gồm: Thông báo phạt → Trang hình ảnh heo chết → Bảng giá.</p>
+    </header>
+
+    <section class="card master">
+      <div class="mrow"><span id="masterInfo">Đang tải MASTER.xlsx…</span><button class="btn" id="btnMaster" type="button">Chọn file MASTER</button></div>
+      <input id="fMaster" type="file" accept=".xlsx,.xls" hidden>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">1</span>Thông báo</h2>
+      <div class="grid2">
+        <div class="field full"><label for="loA">Lò giết mổ (Bên A)</label><select id="loA"></select></div>
+        <div class="field"><label for="soTB">Số thông báo</label><input id="soTB" value="001/2026" placeholder="001/2026"><small id="soTBFull" style="color:var(--muted);font-size:11px;overflow-wrap:anywhere"></small></div>
+        <div class="field"><label for="ngay">Ngày phát sinh</label><input id="ngay" type="date" ></div>
+        <div class="field"><label for="han">Hạn thanh toán <small>(mặc định cuối tháng)</small></label><input id="han" type="date" ></div>
+        <div class="field"><label for="daiDienA">Đại diện Bên A</label><input id="daiDienA" class="m"></div>
+        <div class="field full"><label for="diaChiA">Địa chỉ Bên A</label><input id="diaChiA" class="m"></div>
+        <div class="field full"><label for="noiDungCK">Nội dung chuyển khoản</label><input id="noiDungCK" class="m"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">2</span>Nhà xe (Bên B)</h2>
+      <div class="grid2">
+        <div class="field"><label for="soXe">Số xe</label><select id="soXe"></select></div>
+        <div class="field"><label for="taiXe">Tài xế</label><input id="taiXe" placeholder="Họ tên tài xế"></div>
+        <div class="field full"><label for="ncc">Nhà cung cấp</label><input id="ncc" class="m"></div>
+        <div class="field"><label for="soHD">Số hợp đồng</label><input id="soHD" class="m"></div>
+        <div class="field"><label for="ngayHD">Ngày ký HĐ</label><input id="ngayHD" type="date" class="m"></div>
+        <div class="field"><label for="dieuKhoan">Điều khoản đền bù</label><input id="dieuKhoan" class="m"></div>
+        <div class="field"><label for="daiDienB">Đại diện Bên B</label><input id="daiDienB" class="m"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">3</span>Heo chết</h2>
+      <div class="grid2">
+        <div class="field"><label for="trai">Trại xuất</label><input id="trai" placeholder="VD: Thanh Trang"></div>
+        <div class="field"><label for="tong">Tổng số heo (con)</label><input id="tong" type="number" min="1"></div>
+        <div class="field"><label for="soChet">Số heo chết (con)</label><input id="soChet" type="number" min="1" value="1"></div>
+        <div class="field"><label for="kg">Trọng lượng (kg)</label><input id="kg" type="number" step="0.1" min="0"></div>
+        <div class="field full"><label for="gia">Đơn giá heo thịt (đ/kg)</label><input id="gia" type="number" step="500" min="0"></div>
+      </div>
+      <div class="total"><span>Tổng tiền đền bù</span><strong id="tongTien">—</strong></div>
+      <details>
+        <summary>Tùy chỉnh thêm</summary>
+        <div class="grid2">
+          <div class="field"><label for="dieuQuaHan">Điều khoản cấn trừ</label><input id="dieuQuaHan" value="Điều 10, Khoản 4, Mục (i)"></div>        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">4</span>Hình ảnh heo chết</h2>
+      <div class="drop" id="dropImg" tabindex="0" role="button"><b>Chọn hình từ máy</b> hoặc kéo thả vào đây<br><small>JPG, PNG · chọn được nhiều hình</small></div>
+      <input id="fImg" type="file" accept="image/*" multiple hidden>
+      <div class="thumbs" id="thumbs"></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">5</span>Bảng giá (PDF)</h2>
+      <div class="drop" id="dropPdf" tabindex="0" role="button"><b>Chọn file PDF bảng giá</b> hoặc kéo thả vào đây</div>
+      <input id="fPdf" type="file" accept="application/pdf" hidden>
+      <div id="pdfChip"></div>
+    </section>
+
+    <button class="btn primary" id="export">Xuất file PDF</button>
+    <div class="status" id="status"></div>
+  </aside>
+
+  <main class="preview">
+    <div class="ptool"><span>Xem trước · khổ A4</span><span id="pcount"></span></div>
+    <div class="viewport" id="viewport"><div class="scaler" id="scaler"></div></div>
+  </main>
+</div>
+<div id="stage"></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
