@@ -14,7 +14,7 @@
   <aside class="side">
     <header>
       <h1>Thông báo phạt nhà xe vận chuyển</h1>
-      <p>Điền thông tin bên trái, xem trước bên phải, rồi xuất một file PDF gồm: Thông báo phạt → Trang hình ảnh heo chết → Bảng giá.</p>
+      <p>Điền thông tin bên trái, xem trước bên phải, rồi xuất một file PDF gồm: Thông báo phạt → Hình ảnh heo chết → Biên bản sự việc → Bảng giá.</p>
     </header>
 
     <div class="notice warn" id="masterInfo" role="alert" hidden></div>
@@ -71,7 +71,14 @@
     </section>
 
     <section class="card">
-      <h2><span class="n">5</span>Bảng giá (PDF)</h2>
+      <h2><span class="n">5</span>Biên bản sự việc</h2>
+      <div class="drop" id="dropBB" tabindex="0" role="button"><b>Chọn biên bản</b> hoặc kéo thả vào đây<br><small>Hình chụp hoặc file PDF scan</small></div>
+      <input id="fBB" type="file" accept="image/*,application/pdf" hidden>
+      <div id="bbChip"></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">6</span>Bảng giá (PDF)</h2>
       <div class="drop" id="dropPdf" tabindex="0" role="button"><b>Chọn file PDF bảng giá</b> hoặc kéo thả vào đây</div>
       <input id="fPdf" type="file" accept="application/pdf" hidden>
       <div id="pdfChip"></div>

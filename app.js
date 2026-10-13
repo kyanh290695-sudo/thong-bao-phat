@@ -113,7 +113,8 @@ $("han").value = endOfMonth($("ngay").value);
 $("soTB").value = `001/${today.getFullYear()}`;
 
 // ---- State for files ----
-let photos=[];      // {id,url}
+let photos=[];      // {id,url,w,h}
+let bienBan=null;   // {name,pages:[{url,w,h}]}
 let pricePdf=null;  // {name,bytes:Uint8Array}
 let priceCanvases=[];
 
@@ -182,14 +183,20 @@ function render(){
     photoPages=`<div class="page gen">${head}<div class="photos"><div class="ph empty">Chưa có hình</div><div class="ph empty">Chọn hình ở mục 4</div></div></div>`;
   } else {
     for(let i=0;i<photos.length;i+=6){
-      photoPages+=`<div class="page gen">${i===0?head:""}<div class="photos">${photos.slice(i,i+6).map(p=>`<div class="ph"><img src="${p.url}" alt=""></div>`).join("")}</div></div>`;
+      photoPages+=`<div class="page gen">${i===0?head:""}<div class="photos">${photos.slice(i,i+6).map(p=>`<div class="ph">${fitImg(p,312,281)}</div>`).join("")}</div></div>`;
     }
   }
 
-  const priceSlots=pricePdf? priceCanvases.map((_,i)=>`<div class="page pdfp" data-pi="${i}"></div>`).join("")
-    : `<div class="page pdfp empty"><b>Trang bảng giá</b><span>Chọn file PDF ở mục 5</span></div>`;
+  // Biên bản sự việc: mỗi trang ảnh/PDF canh vừa một trang A4
+  const bbHead=`<p class="photo-h">Biên bản sự việc ngày ${ngay}</p>`;
+  const bbPages=bienBan
+    ? bienBan.pages.map((p,i)=>`<div class="page gen bb">${i===0?bbHead:""}<div class="bbbox">${fitImg(p,634,i===0?955:993)}</div></div>`).join("")
+    : `<div class="page gen bb">${bbHead}<div class="bbbox empty">Chọn biên bản ở mục 5</div></div>`;
 
-  $("scaler").innerHTML=p1+p2+photoPages+priceSlots;
+  const priceSlots=pricePdf? priceCanvases.map((_,i)=>`<div class="page pdfp" data-pi="${i}"></div>`).join("")
+    : `<div class="page pdfp empty"><b>Trang bảng giá</b><span>Chọn file PDF ở mục 6</span></div>`;
+
+  $("scaler").innerHTML=p1+p2+photoPages+bbPages+priceSlots;
   document.querySelectorAll(".page.pdfp[data-pi]").forEach(el=>el.appendChild(priceCanvases[+el.dataset.pi]));
   const total=document.querySelectorAll("#scaler .page").length;
   $("pcount").textContent=`${total} trang`;
@@ -205,16 +212,19 @@ function fit(){
 new ResizeObserver(fit).observe($("viewport"));
 document.querySelectorAll(".side input:not([type=file]),.side select").forEach(el=>el.addEventListener("input",render));
 
+// Ảnh có kích thước tính sẵn để vừa khung (html2canvas không hỗ trợ object-fit)
+function fitImg(p,bw,bh){ const k=Math.min(bw/p.w,bh/p.h); return `<img src="${p.url}" alt="" style="width:${Math.floor(p.w*k)}px;height:${Math.floor(p.h*k)}px">`; }
+
 // ---- Photos ----
-function shrink(file){ return new Promise((res,rej)=>{
+function shrink(file,m=1600){ return new Promise((res,rej)=>{
   const img=new Image(), u=URL.createObjectURL(file);
-  img.onload=()=>{ const m=1600, k=Math.min(1,m/Math.max(img.naturalWidth,img.naturalHeight));
+  img.onload=()=>{ const k=Math.min(1,m/Math.max(img.naturalWidth,img.naturalHeight));
     const c=document.createElement("canvas"); c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
-    c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u); res(c.toDataURL("image/jpeg",0.88)); };
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u); res({url:c.toDataURL("image/jpeg",0.88),w:c.width,h:c.height}); };
   img.onerror=()=>{URL.revokeObjectURL(u);rej()}; img.src=u; }); }
 async function addPhotos(files){
   for(const f of files){ if(!f.type.startsWith("image/")) continue;
-    try{ photos.push({id:Math.random().toString(36).slice(2),url:await shrink(f)}); }catch(e){ status(`Không đọc được hình ${f.name}.`,true); } }
+    try{ photos.push({id:Math.random().toString(36).slice(2),...await shrink(f)}); }catch(e){ status(`Không đọc được hình ${f.name}.`,true); } }
   drawThumbs(); render();
 }
 function drawThumbs(){
@@ -243,6 +253,31 @@ async function setPdf(file){
   }catch(e){ status("Không mở được file PDF này. Hãy thử file khác.",true); }
 }
 
+// ---- Biên bản sự việc (ảnh hoặc PDF) ----
+async function setBienBan(file){
+  if(!file) return;
+  const isPdf=file.type==="application/pdf"||/\.pdf$/i.test(file.name);
+  if(!isPdf&&!file.type.startsWith("image/")){status("Biên bản phải là hình hoặc file PDF.",true);return;}
+  status("Đang đọc biên bản…");
+  try{
+    let pages=[];
+    if(isPdf){
+      const doc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+      for(let i=1;i<=doc.numPages;i++){
+        const pg=await doc.getPage(i), vp0=pg.getViewport({scale:1}), vp=pg.getViewport({scale:1800/Math.max(vp0.width,vp0.height)});
+        const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height;
+        const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+        await pg.render({canvasContext:ctx,viewport:vp,intent:"print"}).promise;
+        pages.push({url:c.toDataURL("image/jpeg",0.9),w:c.width,h:c.height});
+      }
+    } else pages=[await shrink(file,2200)];
+    bienBan={name:file.name,pages};
+    $("bbChip").innerHTML=`<div class="filechip"><span>${esc(file.name)}${pages.length>1?` · ${pages.length} trang`:""}</span><button id="rmBB">Bỏ</button></div>`;
+    $("rmBB").onclick=()=>{bienBan=null;$("bbChip").innerHTML="";render();};
+    status(""); render();
+  }catch(e){ status("Không mở được file biên bản này. Hãy thử file khác.",true); }
+}
+
 // ---- Drop zones ----
 function wireDrop(zone,input,handler){
   zone.onclick=()=>input.click();
@@ -253,6 +288,7 @@ function wireDrop(zone,input,handler){
   zone.ondrop=e=>{e.preventDefault();zone.classList.remove("over");handler([...e.dataTransfer.files]);};
 }
 wireDrop($("dropImg"),$("fImg"),addPhotos);
+wireDrop($("dropBB"),$("fBB"),f=>setBienBan(f[0]));
 wireDrop($("dropPdf"),$("fPdf"),f=>setPdf(f[0]));
 
 function status(t,err){ $("status").textContent=t; $("status").classList.toggle("err",!!err); }

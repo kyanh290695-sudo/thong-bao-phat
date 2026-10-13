@@ -87,3 +87,6 @@ details[open] summary{margin-bottom:10px}
 .pen svg{width:15px;height:15px}
 .notice{margin:0;background:var(--accent-soft);color:var(--fg);border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
 .notice.warn{color:var(--danger);font-weight:600}
+.page.bb{display:flex;flex-direction:column}
+.bbbox{flex:1;min-height:0;display:flex;align-items:flex-start;justify-content:center;margin-top:4px}
+.bbbox.empty{align-items:center;border:1.5px dashed #b9c2cc;color:#8a96a3;font-family:var(--ui);font-size:14px}
