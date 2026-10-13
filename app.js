@@ -49,7 +49,7 @@ function sheetRows(wb, name) {
   return XLSX.utils.sheet_to_json(wb.Sheets[key], { defval: "" });
 }
 function parseMaster(buf) {
-  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const wb = XLSX.read(buf, { type: "array" }); // ngày giữ dạng số serial của Excel để không lệch múi giờ
   const a = sheetRows(wb, "BÊN A").filter(r => clean(r["Tên Lò Giết Mổ"])).map(r => ({
     lo: clean(r["Tên Lò Giết Mổ"]), cty: clean(r["Tên Công Ty"]), mst: clean(r["MST"]), dc: clean(r["Địa Chỉ"]),
     dd: clean(r["Người Đại Diện"]), stk: clean(r["Số Tài Khoản Ngân Hàng"]), tentk: clean(r["Tên Tài Khoản Ngân Hàng"]),
