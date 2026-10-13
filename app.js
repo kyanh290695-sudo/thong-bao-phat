@@ -137,7 +137,7 @@ function render(){
     <div class="hdr"><div>${esc(cty1)}</div>${cty2?`<div>${esc(cty2)}</div>`:""}<div>MST: ${esc(A.mst)}</div></div>
     <div class="ttl"><b>THÔNG BÁO PHẠT VI PHẠM HỢP ĐỒNG</b>(Số: ${esc(soTB)})</div>
     <div class="kg">Kính gửi: ${esc(ncc.toUpperCase())}</div>
-    <p>Hôm nay ngày ${ngay}, tại ${esc(A.cty)}. Địa chỉ: ${esc(v("diaChiA"))}.</p>
+    <p>Hôm nay ngày ${ngay}, tại lò giết mổ ${esc(A.lo)}. Địa chỉ: ${esc(v("diaChiA"))}.</p>
     <h3><span>I.</span>Căn cứ:</h3>
     <ul>
       <li>Hợp đồng vận chuyển số: <b>${esc(v("soHD"))}</b> ký ngày ${fmtDate($("ngayHD").value)} (sau đây gọi tắt là Hợp đồng) ký giữa ${esc(cty1)} (Bên A-đơn vị thuê dịch vụ vận chuyển) với ${esc(ncc)} (Bên B-đơn vị cung cấp dịch vụ vận chuyển).</li>
@@ -145,7 +145,7 @@ function render(){
       <li>Và thông tin từ các bộ phận liên quan;</li>
     </ul>
     <h3><span>II.</span>Xác định nội dung vi phạm</h3>
-    <p class="indent">Trong quá trình xe ${esc(xe)} thuộc NCC ${esc(ncc)}, vận chuyển heo thịt từ trại ${esc(v("trai"))} về lò mổ ${esc(A.lo)} tổng cộng ${esc($("tong").value)} con, trong đó có ${esc($("soChet").value)} con heo chết trên xe, trọng lượng ${num(kg)}kg.</p>
+    <p class="indent">Trong quá trình xe ${esc(xe)} thuộc NCC ${esc(ncc)}, vận chuyển heo thịt từ trại ${esc(v("trai"))} về lò giết mổ ${esc(A.lo)} tổng cộng ${esc($("tong").value)} con, trong đó có ${esc($("soChet").value)} con heo chết trên xe, trọng lượng ${num(kg)}kg.</p>
     <p class="indent">&gt;&gt; Căn cứ theo <b>${esc(v("dieuKhoan"))}</b> của <b>Hợp đồng vận chuyển số: ${esc(v("soHD"))}</b>, Nhà vận chuyển sẽ đền bù thiệt hại con heo chết với mức giá theo giá heo thị trường tại thời điểm phát sinh.</p>
     <h3><span>III.</span>Mức phạt áp dụng</h3>
     <p><b>Bên A quyết định phạt Bên B như sau:</b></p>
