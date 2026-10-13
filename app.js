@@ -180,11 +180,9 @@ function render(){
     <p class="photo-h">Xe vận chuyển ${esc(xe)} – NCC ${esc(ncc)}${v("taiXe")?` – tài xế ${esc(v("taiXe"))}`:""}</p>`;
   let photoPages="";
   if(!photos.length){
-    photoPages=`<div class="page gen">${head}<div class="photos"><div class="ph empty">Chưa có hình</div><div class="ph empty">Chọn hình ở mục 4</div></div></div>`;
+    photoPages=`<div class="page gen phpage">${head}<div class="photos"><div class="phrow"><div class="ph empty">Chưa có hình</div><div class="ph empty">Chọn hình ở mục 4</div></div></div></div>`;
   } else {
-    for(let i=0;i<photos.length;i+=6){
-      photoPages+=`<div class="page gen">${i===0?head:""}<div class="photos">${photos.slice(i,i+6).map(p=>`<div class="ph">${fitImg(p,312,281)}</div>`).join("")}</div></div>`;
-    }
+    photoPages=`<div class="page gen phpage">${head}${photoLayout(photos)}</div>`;
   }
 
   // Biên bản sự việc: mỗi trang ảnh/PDF canh vừa một trang A4
@@ -215,6 +213,22 @@ document.querySelectorAll(".side input:not([type=file]),.side select").forEach(e
 // Ảnh có kích thước tính sẵn để vừa khung (html2canvas không hỗ trợ object-fit)
 function fitImg(p,bw,bh){ const k=Math.min(bw/p.w,bh/p.h); return `<img src="${p.url}" alt="" style="width:${Math.floor(p.w*k)}px;height:${Math.floor(p.h*k)}px">`; }
 
+// Chọn cách xếp 1–4 hình sao cho hình to và đều nhau nhất trong khung trang
+const PH_W=674, PH_H=870, PH_GAP=12;
+const PH_LAYOUTS={1:[[1]],2:[[1,1],[2]],3:[[1,1,1],[2,1],[1,2]],4:[[2,2]]};
+function photoLayout(list){
+  let best=null;
+  for(const rows of PH_LAYOUTS[list.length]){
+    const rh=(PH_H-PH_GAP*(rows.length-1))/rows.length; let i=0, areas=[];
+    const cells=rows.map(k=>{ const cw=(PH_W-PH_GAP*(k-1))/k;
+      const row=list.slice(i,i+=k).map(p=>{ const s=Math.min(cw/p.w,rh/p.h); areas.push(p.w*p.h*s*s); return {p,cw,rh,h:p.h*s}; });
+      const h=Math.max(...row.map(c=>c.h)); row.forEach(c=>c.rh=h); return row; }); // dồn hàng sát nhau, khoảng cách đều
+    const score=areas.length*Math.min(...areas)+areas.reduce((a,b)=>a+b,0)*1e-3; // ưu tiên các hình to đều nhau
+    if(!best||score>best.score) best={score,cells};
+  }
+  return `<div class="photos">${best.cells.map(r=>`<div class="phrow">${r.map(c=>`<div class="ph" style="width:${Math.floor(c.cw)}px;height:${Math.floor(c.rh)}px">${fitImg(c.p,c.cw,c.rh)}</div>`).join("")}</div>`).join("")}</div>`;
+}
+
 // ---- Photos ----
 function shrink(file,m=1600){ return new Promise((res,rej)=>{
   const img=new Image(), u=URL.createObjectURL(file);
@@ -222,12 +236,16 @@ function shrink(file,m=1600){ return new Promise((res,rej)=>{
     const c=document.createElement("canvas"); c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
     c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u); res({url:c.toDataURL("image/jpeg",0.88),w:c.width,h:c.height}); };
   img.onerror=()=>{URL.revokeObjectURL(u);rej()}; img.src=u; }); }
+const MAX_PHOTOS=4;
 async function addPhotos(files){
-  for(const f of files){ if(!f.type.startsWith("image/")) continue;
+  const imgs=files.filter(f=>f.type.startsWith("image/"));
+  if(photos.length+imgs.length>MAX_PHOTOS) status(`Tối đa ${MAX_PHOTOS} hình. Chỉ lấy ${Math.max(0,MAX_PHOTOS-photos.length)} hình đầu.`,true);
+  for(const f of imgs.slice(0,Math.max(0,MAX_PHOTOS-photos.length))){
     try{ photos.push({id:Math.random().toString(36).slice(2),...await shrink(f)}); }catch(e){ status(`Không đọc được hình ${f.name}.`,true); } }
   drawThumbs(); render();
 }
 function drawThumbs(){
+  $("dropImg").hidden=photos.length>=MAX_PHOTOS;
   $("thumbs").innerHTML=photos.map(p=>`<div class="thumb"><img src="${p.url}" alt=""><button data-id="${p.id}" aria-label="Xóa hình">×</button></div>`).join("");
 }
 $("thumbs").onclick=e=>{const id=e.target.dataset?.id; if(id){photos=photos.filter(p=>p.id!==id);drawThumbs();render();}};
